@@ -2,7 +2,7 @@
 
 Minimal starting point for deploying an app to the `astrojones` org via [nuklaut](https://github.com/astrojones/nuklaut).
 
-Push to `main` → image built + pushed to GHCR → deployed to `https://<repo>.astrojones.de` via Traefik on the shared controller.
+Push to `main` → image built + pushed to GHCR → deployed to `https://<repo>.astrojones.de` via Traefik on the shared controller. No SSH access required.
 
 ## Quickstart
 
@@ -11,14 +11,18 @@ Push to `main` → image built + pushed to GHCR → deployed to `https://<repo>.
    ```bash
    grep -rl '__REPO_NAME__' . | xargs sed -i 's/__REPO_NAME__/my-app/g'
    ```
-3. **Write per-app secrets** to the controller once (skip if your app has no secrets):
-   ```bash
-   ssh deploy@178.105.203.242 \
-     'sudo install -m 600 -o root -g root /dev/stdin /opt/nuklaut/secrets/my-app.env' <<'EOF'
-   DATABASE_URL=postgres://...
-   MY_API_KEY=sk-...
-   EOF
-   ```
+3. **Add per-app secrets** as a single GitHub repo secret named `APP_ENV` (skip if your app has none):
+
+   Repo → Settings → Secrets and variables → Actions → New repository secret:
+   - **Name:** `APP_ENV`
+   - **Value:** multiline env file, e.g.:
+     ```
+     DATABASE_URL=postgres://user:pass@host/db
+     MY_API_KEY=sk-...
+     ```
+
+   The deploy workflow writes this to the controller on every push — no SSH needed.
+
 4. **Replace the Dockerfile** with one that actually builds your app.
 5. **Push to `main`** — first deploy runs automatically.
 
@@ -56,7 +60,7 @@ ghcr.io/astrojones/<repo>/<repo>:{sha,latest}
 
 | Type | Where | How |
 |------|-------|-----|
-| Per-app | `/opt/nuklaut/secrets/<repo>.env` on controller | SSH once (step 3 above) |
-| Org-wide | GitHub org Actions secrets | Already in place; workflow writes them to `_shared.env` on every deploy |
+| Per-app | `APP_ENV` GitHub repo secret | Repo → Settings → Secrets → `APP_ENV` (multiline key=value) |
+| Org-wide | GitHub org Actions secrets | Already in place; managed by the org admin |
 
-Never put secrets in `.env` files in git or in per-repo GitHub secrets.
+Never put secrets in `.env` files committed to git.
