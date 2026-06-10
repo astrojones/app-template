@@ -1,0 +1,9 @@
+services:
+  web:
+    image: ghcr.io/astrojones/__REPO_NAME__/__REPO_NAME__:latest
+    restart: unless-stopped
+    expose:
+      - "8080"
+    # env_file:
+    #   - /opt/nuklaut/secrets/__REPO_NAME__.env  # inject per-app secrets at runtime
+    #                                              # (nuk also wires this via envFrom)

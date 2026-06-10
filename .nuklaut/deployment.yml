@@ -1,0 +1,45 @@
+apiVersion: nuk/v1
+kind: Deployment
+metadata:
+  name: __REPO_NAME__
+spec:
+  # source: {} means the deploy workflow passes the checked-out repo directly
+  # (no git auth needed on the controller). Leave this as-is for CI deploys.
+  source: {}
+  ingress:
+    - host: __REPO_NAME__.astrojones.de
+      service: web   # must match the service name in docker-compose.yml
+      port: 8080     # container port your app listens on
+  envFrom:
+    - secretRef: /opt/nuklaut/secrets/__REPO_NAME__.env  # per-app secrets (written once via SSH)
+    - secretRef: /opt/nuklaut/secrets/_shared.env        # org-wide secrets (optional, skip if absent)
+
+# ── Optional extras ──────────────────────────────────────────────────────────
+#
+# Split /api and frontend on the same host:
+#   ingress:
+#     - host: __REPO_NAME__.astrojones.de
+#       path: /api
+#       stripPrefix: true
+#       service: backend
+#       port: 8000
+#     - host: __REPO_NAME__.astrojones.de
+#       service: frontend
+#       port: 80
+#
+# Shared postgres + redis (nuk provisions creds, injects DATABASE_URL / REDIS_URL):
+#   databases:
+#     postgres: true
+#     redis: true
+#     # postgres: { driver: asyncpg }  # for SQLAlchemy async apps
+#
+# OAuth gate (GitHub login via org oauth2-proxy):
+#   ingress:
+#     - host: __REPO_NAME__.astrojones.de
+#       service: web
+#       port: 8080
+#       auth: oauth
+#
+# Custom compose file (default is docker-compose.yml):
+#   compose:
+#     file: docker-compose.prod.yml
