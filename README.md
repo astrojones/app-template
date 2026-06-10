@@ -6,7 +6,11 @@ Push to `main` → image built + pushed to GHCR → deployed to `https://<repo>.
 
 ## Quickstart
 
-1. **Use this template** (GitHub → "Use this template" → name your repo)
+1. **Create a private repo from this template:**
+   ```bash
+   gh repo create astrojones/my-app --private --template astrojones/app-template --clone
+   cd my-app
+   ```
 2. **Replace** every `__REPO_NAME__` with your actual repo name:
    ```bash
    grep -rl '__REPO_NAME__' . | xargs sed -i 's/__REPO_NAME__/my-app/g'
